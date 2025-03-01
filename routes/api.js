@@ -94,7 +94,7 @@ router.get('/me', authenticateToken, async (req, res) => {
 
 router.get('/products', async (req, res) => {
   try {
-    const result = await db.query('SELECT id AS id, nombre_juego AS name, descripcion AS description, precio AS price, fecha_lanzamiento AS releaseDate, imageUrl FROM products');
+    const result = await db.query('SELECT id AS id, nombre_juego AS name, descripcion AS description, precio AS price, fecha_lanzamiento AS releaseDate, imageurl FROM products');
     const products = result.rows.map((product) => ({
       ...product,
       price: parseFloat(product.price),
