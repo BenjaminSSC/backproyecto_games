@@ -110,14 +110,15 @@ router.get('/products/:id', async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Obtener los datos del producto
-    const productResult = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+    const productResult = await db.query(
+      'SELECT id, nombre_juego, descripcion, precio, fecha_lanzamiento, imageurl, videourl FROM products WHERE id = $1',
+      [id]
+    );
     if (productResult.rows.length === 0) {
       return res.status(404).json({ error: 'Producto no encontrado' });
     }
     const product = productResult.rows[0];
 
-    // Obtener las plataformas asociadas al producto
     const platformsResult = await db.query(
       `SELECT p.id_plataforma AS id, p.nombre_plataforma, jp.usado
        FROM plataformas p
@@ -127,13 +128,14 @@ router.get('/products/:id', async (req, res) => {
     );
     const platforms = platformsResult.rows;
 
-    // Combinar los datos del producto con las plataformas
     res.json({
       id: product.id,
       name: product.nombre_juego,
       description: product.descripcion,
-      price: product.precio,
+      price: parseFloat(product.precio),
       releaseDate: product.fecha_lanzamiento,
+      imageUrl: product.imageurl,
+      videoUrl: product.videourl || null,
       platforms: platforms.map((platform) => ({
         id: platform.id,
         name: platform.nombre_plataforma,
@@ -149,6 +151,14 @@ router.get('/products/:id', async (req, res) => {
 // Ruta protegida
 router.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'Ruta protegida, acceso concedido!' });
+});
+
+router.get('/verify-token', authenticateToken, (req, res) => {
+  // Si llega aquí, el token ya fue verificado por el middleware
+  res.json({
+    id: req.user.id,
+    email: req.user.email, // Devuelve los datos del usuario desde el token
+  });
 });
 
 module.exports = router;

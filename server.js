@@ -1,14 +1,17 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+const API_URL = 'https://gamers-site.netlify.app' // 'http://localhost:3000'; 
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: 'https://gamers-site.netlify.app',
+  origin: API_URL,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true, // Si usas cookies o autenticación
+  credentials: true,
 }));
+
+app.use(express.static('public'));
 
 // Rutas
 app.use('/api', require('./routes/api.js')); // Todas las rutas estarán bajo /api
