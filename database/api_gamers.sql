@@ -78,7 +78,8 @@ CREATE TABLE public.products (
     descripcion text,
     precio numeric(10,2) NOT NULL,
     fecha_lanzamiento date NOT NULL,
-    imageurl character varying(255)
+    imageurl character varying(255),
+    videourl character varying(255)
 );
 
 
@@ -191,13 +192,13 @@ COPY public.plataformas (id_plataforma, nombre_plataforma) FROM stdin;
 -- Data for Name: products; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
-COPY public.products (id, nombre_juego, descripcion, precio, fecha_lanzamiento, imageurl) FROM stdin;
-1	Sekiro	Juego de acción y aventura desarrollado por FromSoftware	59.99	2019-03-22	/images/sekiro-ps4.webp
-2	Outriders	RPG de disparos cooperativo	59.99	2021-04-01	/images/outriders-ps4.webp
-3	Donkey Kong Country	Juego de plataformas con Donkey Kong	59.99	2018-05-04	/images/donkeykongcountry-switch.webp
-4	Mortal Kombat	Juego de lucha con gráficos mejorados	59.99	2019-04-23	/images/mk11-xbox.webp
-5	Cyberpunk 2077	RPG en un mundo distópico futurista	59.99	2020-12-10	/images/cyberpunk2077-xbox.webp
-6	Zelda: Breath of the Wild	Juego de aventura y exploración en un vasto mundo abierto	59.99	2017-03-03	/images/tlozbotw-switch.webp
+COPY public.products (id, nombre_juego, descripcion, precio, fecha_lanzamiento, imageurl, videourl) FROM stdin;
+1	Sekiro	Juego de acción y aventura desarrollado por FromSoftware	59.99	2019-03-22	/images/sekiro-ps4.webp	https://www.youtube.com/embed/rXMX4YJ7Lks
+2	Outriders	RPG de disparos cooperativo	59.99	2021-04-01	/images/outriders-ps4.webp	https://www.youtube.com/embed/SrRDiiaCf8c
+3	Donkey Kong Country	Juego de plataformas con Donkey Kong	59.99	2018-05-04	/images/donkeykongcountry-switch.webp	https://www.youtube.com/embed/_5p0SiWHwvw
+4	Mortal Kombat	Juego de lucha con gráficos mejorados	59.99	2019-04-23	/images/mk11-xbox.webp	https://www.youtube.com/embed/G4My4kc-Lbo
+5	Cyberpunk 2077	RPG en un mundo distópico futurista	59.99	2020-12-10	/images/cyberpunk2077-xbox.webp	https://www.youtube.com/embed/AY5tccjZFKU
+6	Zelda: Breath of the Wild	Juego de aventura y exploración en un vasto mundo abierto	59.99	2017-03-03	/images/tlozbotw-switch.webp	https://www.youtube.com/embed/IJnnn0BBj_c
 \.
 
 

@@ -3,10 +3,21 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const db = require('../db/db.js');
+const path = require('path')
+const multer = require('multer');
 const { SECRET_KEY } = require('../secretKey');
 const { authenticateToken, validateLoginCredentials } = require('../middleware/auth');
 
-// Función para generar un token JWT
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/'); // Carpeta donde se guardarán las imágenes
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname)); // Nombre único
+  },
+});
+const upload = multer({ storage });
+
 function generateAccessToken(user) {
   return jwt.sign({ userId: user.id }, SECRET_KEY, { expiresIn: '1h' });
 }
@@ -131,11 +142,11 @@ router.get('/products/:id', async (req, res) => {
     res.json({
       id: product.id,
       name: product.nombre_juego,
-      description: product.descripcion,
+      description: product.descripcion || 'Sin descripción',
       price: parseFloat(product.precio),
       releaseDate: product.fecha_lanzamiento,
-      imageUrl: product.imageurl,
-      videoUrl: product.videourl || null,
+      imageurl: product.imageurl,
+      videourl: product.videourl || null,
       platforms: platforms.map((platform) => ({
         id: platform.id,
         name: platform.nombre_plataforma,
@@ -148,17 +159,50 @@ router.get('/products/:id', async (req, res) => {
   }
 });
 
-// Ruta protegida
-router.get('/protected', authenticateToken, (req, res) => {
-  res.json({ message: 'Ruta protegida, acceso concedido!' });
-});
+router.post('/products', authenticateToken, upload.single('image'), async (req, res) => {
+  const { nombre_juego, descripcion, precio, id_plataforma, usado } = req.body;
+  const imageurl = req.file ? `/uploads/${req.file.filename}` : null;
 
-router.get('/verify-token', authenticateToken, (req, res) => {
-  // Si llega aquí, el token ya fue verificado por el middleware
-  res.json({
-    id: req.user.id,
-    email: req.user.email, // Devuelve los datos del usuario desde el token
-  });
+  // Validación básica
+  if (!nombre_juego || !precio || !id_plataforma) {
+    return res.status(400).json({ error: 'Faltan campos obligatorios: nombre_juego, precio, id_plataforma' });
+  }
+
+  // Convertimos "usado" a booleano (viene como string desde FormData)
+  const isUsado = usado === 'true' || usado === true;
+
+  try {
+    // Insertar el producto en la tabla products
+    const productQuery = `
+      INSERT INTO products (nombre_juego, descripcion, precio, imageurl, fecha_lanzamiento)
+      VALUES ($1, $2, $3, $4, CURRENT_DATE)
+      RETURNING *;
+    `;
+    const productValues = [nombre_juego, descripcion, precio, imageurl];
+    const productResult = await db.query(productQuery, productValues);
+
+    const newProduct = productResult.rows[0];
+
+    // Insertar la relación en juegos_plataformas con el valor de "usado"
+    const plataformaQuery = `
+      INSERT INTO juegos_plataformas (id, id_plataforma, usado)
+      VALUES ($1, $2, $3);
+    `;
+    await db.query(plataformaQuery, [newProduct.id, id_plataforma, isUsado]);
+
+    // Devolver el producto en el formato esperado por el frontend
+    res.status(201).json({
+      id: newProduct.id,
+      name: newProduct.nombre_juego,
+      description: newProduct.descripcion,
+      price: parseFloat(newProduct.precio),
+      imageurl: newProduct.imageurl,
+      releaseDate: newProduct.fecha_lanzamiento,
+    });
+  } catch (err) {
+    console.error('Error al crear producto:', err);
+    res.status(500).json({ error: 'Error al crear producto' });
+  }
 });
 
 module.exports = router;
